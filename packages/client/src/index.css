@@ -1,9 +1,14 @@
+@import url("https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,200..800&family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&display=swap");
+
 @import "tailwindcss";
 @import "tw-animate-css";
 
 @custom-variant dark (&:is(.dark *));
 
 @theme inline {
+  --font-sans: "Inter", sans-serif;
+  --font-bricolage: "Bricolage Grotesque", sans-serif;
+
   --radius-sm: calc(var(--radius) - 4px);
   --radius-md: calc(var(--radius) - 2px);
   --radius-lg: var(--radius);
@@ -116,5 +121,18 @@
   }
   body {
     @apply bg-background text-foreground;
+  }
+
+  textarea::-webkit-scrollbar {
+    width: 6px;
+  }
+  textarea::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  textarea::-webkit-scrollbar-thumb {
+    @apply bg-neutral-600 rounded-[3px];
+  }
+  textarea::-webkit-scrollbar-thumb:hover {
+    @apply bg-neutral-700 rounded-[3px];
   }
 }
