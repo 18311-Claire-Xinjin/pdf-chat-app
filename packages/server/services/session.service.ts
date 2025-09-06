@@ -1,11 +1,18 @@
 export interface Session {
   sessionId: string;
+  status:
+    | "uploaded"
+    | "extracting"
+    | "chunking"
+    | "embedding"
+    | "storing"
+    | "complete"
+    | "error";
   file: {
     name: string;
     size: number;
     path: string;
     uploadedAt: string;
-    status: "ready" | "processing" | "error";
   };
   metadata?: {
     totalChunks?: number;

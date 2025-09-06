@@ -1,6 +1,7 @@
 import type { Request, Response } from "express";
 
 import { sessionService, type Session } from "../services/session.service";
+import { pdfProcessorService } from "../services/pdf-processor.service";
 
 export const uploadController = {
   upload(req: Request, res: Response) {
@@ -14,11 +15,11 @@ export const uploadController = {
 
       const session: Session = {
         sessionId,
+        status: "uploaded",
         file: {
           name: req.file.originalname,
           size: req.file.size,
           path: req.file.path,
-          status: "processing",
           uploadedAt: new Date().toISOString(),
         },
       };
@@ -32,6 +33,7 @@ export const uploadController = {
       });
 
       // Start PDF processing asynchronously
+      pdfProcessorService.processDocument(sessionId, req.file.path);
     } catch (error) {
       console.error("Error uploading PDF:", error);
       return res.status(500).json({ error: "Upload failed" });
