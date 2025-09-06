@@ -1,4 +1,5 @@
 import path from "node:path";
+import fs from "node:fs";
 import multer from "multer";
 import express, { type Request } from "express";
 
@@ -7,6 +8,11 @@ import { MAX_FILE_SIZE } from "../utils/constant";
 const uploadsDir = path.join(process.cwd(), "uploads");
 
 export const uploadService = {
+  createUploadDir: () => {
+    if (!fs.existsSync(uploadsDir))
+      fs.mkdirSync(uploadsDir, { recursive: true });
+  },
+
   middleware: (): express.RequestHandler => {
     const upload = multer({
       storage: multer.diskStorage({
@@ -15,6 +21,7 @@ export const uploadService = {
           file: Express.Multer.File,
           cb: (error: Error | null, destination: string) => void
         ): void => {
+          uploadService.createUploadDir();
           cb(null, uploadsDir);
         },
 
