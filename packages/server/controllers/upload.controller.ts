@@ -2,9 +2,10 @@ import type { Request, Response } from "express";
 
 import { sessionService, type Session } from "../services/session.service";
 import { pdfProcessorService } from "../services/pdf-processor.service";
+import path from "node:path";
 
 export const uploadController = {
-  upload(req: Request, res: Response) {
+  async upload(req: Request, res: Response) {
     try {
       const sessionId = req.sessionId;
 
@@ -19,12 +20,12 @@ export const uploadController = {
         file: {
           name: req.file.originalname,
           size: req.file.size,
-          path: req.file.path,
+          path: `/view/${req.file.filename}`,
           uploadedAt: new Date().toISOString(),
         },
       };
 
-      sessionService.createSession(session);
+      await sessionService.createSession(session);
 
       res.json({
         success: true,

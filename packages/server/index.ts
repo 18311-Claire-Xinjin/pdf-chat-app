@@ -1,6 +1,7 @@
 import express from "express";
 import cors from "cors";
 import dotenv from "dotenv";
+import path from "node:path";
 
 import router from "./routes";
 
@@ -11,6 +12,11 @@ dotenv.config();
 const app = express();
 
 app.use(cors());
+app.use(express.json());
+
+// Serve static files from uploads directory
+const uploadsDir = path.join(process.cwd(), "uploads");
+app.use("/view", express.static(uploadsDir));
 
 app.use(sessionController.middleware);
 

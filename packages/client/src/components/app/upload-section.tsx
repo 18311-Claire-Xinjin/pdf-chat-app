@@ -1,21 +1,49 @@
-import { useRef, useState } from "react";
-import { X } from "lucide-react";
+import { useMemo, useRef, useState } from "react";
+import { Trash2 } from "lucide-react";
 
-import type { PdfStatus } from "@/types";
+import api from "@/api";
 
+import { Button } from "../ui/button";
 import { Logo } from "../layout/logo";
 import { PdfDropzone } from "./pdf-dropzone";
+import { StatusProgress } from "./status-progress";
+import { DeleteSessionConfirmation } from "../modals/delete-session-confirmation";
+
+import { cn } from "@/lib/utils";
 import { formatFileSize } from "@/lib/format-file-size";
-import api from "@/api";
+
+import { useAppState } from "@/hooks/use-app-state";
 
 export function UploadSection() {
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const pollingRef = useRef<NodeJS.Timeout>(null);
 
-  const [file, setFile] = useState<File | null>(null);
-  const [pdfStatus, setPdfStatus] = useState<PdfStatus>("idle");
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
+
+  const [openDeleteSessionConfirmation, setOpenDeleteSessionConfirmation] =
+    useState(false);
+
+  const { status, setStatus, file, setFile, metadata, setMetadata } =
+    useAppState();
+  const handleStatusUpdate = () => {
+    api
+      .get("/api/session/status")
+      .then((res) => {
+        setStatus(res.data.session.status);
+        if (!metadata && res.data.session.metadata) {
+          setMetadata(res.data.session.metadata);
+        }
+        if (res.data.session.status === "complete" && pollingRef.current) {
+          clearInterval(pollingRef.current);
+        }
+      })
+      .catch((err) => {
+        console.error("Error updating status:", err);
+      });
+  };
 
   const handleUploadPdf = (fileObj: File) => {
-    setPdfStatus("uploading");
+    setStatus("uploading");
 
     const formData = new FormData();
     formData.append("pdf", fileObj);
@@ -23,83 +51,88 @@ export function UploadSection() {
     api
       .post("/api/upload", formData)
       .then((res) => {
-        console.log(res);
-        setPdfStatus("processing");
+        setStatus(res.data.session.status);
+        setFile(res.data.session.file);
+        pollingRef.current = setInterval(handleStatusUpdate, 2000);
       })
       .catch((err) => {
         console.error("Error uploading pdf:", err);
-        setPdfStatus("error");
+        setStatus("error");
       });
   };
 
   const handleFileSelect = (fileObj: File | null) => {
     // Add Validations Here
-
-    setFile(fileObj);
+    setSelectedFile(fileObj);
 
     if (fileObj) {
       handleUploadPdf(fileObj);
     }
   };
 
-  const handleFileRemove = () => {
-    setFile(null);
-    if (fileInputRef.current) {
-      fileInputRef.current.value = "";
-    }
-  };
+  const fileData = useMemo(() => selectedFile || file, [selectedFile, file]);
 
   return (
-    <div className="w-full max-w-xl mx-auto flex flex-col items-start justify-center gap-6">
-      {file ? (
-        <div className="rounded-2xl w-full border px-4 py-3">
+    <div className="w-full max-w-xl mx-auto flex flex-col items-start justify-center gap-6 mt-8">
+      {fileData ? (
+        <div
+          className={cn(
+            "rounded-2xl w-full border px-4 py-3 flex flex-col gap-6",
+            {
+              "border border-destructive/20 bg-destructive/5":
+                status === "error",
+            }
+          )}
+        >
           <div className="flex items-start gap-2">
-            <div className="flex items-center gap-4">
-              <div>
+            <div className="flex items-center gap-4 w-full">
+              <div className="shrink-0">
                 <Logo />
               </div>
-              <div className="flex flex-col gap-0.5 w-full">
+              <div className="flex flex-col gap-0.5 w-0 flex-1 min-w-0">
                 <p className="truncate overflow-ellipsis text-base">
-                  {file.name}
+                  {fileData?.name ?? "No Name"}
                 </p>
                 <p className="text-sm text-muted-foreground">
-                  {formatFileSize(file.size)}
+                  {formatFileSize(fileData?.size ?? 0)}
                 </p>
               </div>
+              {status === "complete" && (
+                <DeleteSessionConfirmation
+                  open={openDeleteSessionConfirmation}
+                  onOpenChange={setOpenDeleteSessionConfirmation}
+                >
+                  <Button
+                    size="icon"
+                    variant="outline"
+                    className="cursor-pointer"
+                  >
+                    <Trash2 />
+                  </Button>
+                </DeleteSessionConfirmation>
+              )}
             </div>
-
-            <button
-              className="ml-auto cursor-pointer rounded-full p-1 hover:bg-muted"
-              onClick={handleFileRemove}
-              type="button"
-            >
-              <X className="h-4 w-4" />
-            </button>
           </div>
+
+          <StatusProgress
+            currentStatus={status}
+            onStartChat={() => {
+              setStatus("chatting");
+            }}
+          />
         </div>
       ) : (
-        <PdfDropzone setFile={handleFileSelect} fileInputRef={fileInputRef} />
-      )}
-
-      {pdfStatus !== "idle" && (
-        <div className="flex items-center gap-3">
-          <div
-            className="animate-spin shrink-0 inline-block size-5 border-3 border-current border-t-transparent text-muted-foreground rounded-full"
-            role="status"
-            aria-label="loading"
-          >
-            <span className="sr-only">Loading...</span>
+        <>
+          <PdfDropzone setFile={handleFileSelect} fileInputRef={fileInputRef} />
+          <div className="flex items-center justify-center w-full">
+            <Button
+              variant="ghost"
+              className="italic text-sm text-muted-foreground hover:text-muted-foreground font-normal underline underline-offset-2 cursor-pointer"
+            >
+              or, give it a try with a sample pdf
+            </Button>
           </div>
-          <h1 className="text-sm font-medium text-muted-foreground">
-            {pdfStatus === "uploading"
-              ? "Uploading your pdf, please wait..."
-              : pdfStatus === "processing"
-                ? "Extracting chunks, generating embedding, creating vectors..."
-                : pdfStatus === "error"
-                  ? "Failed to upload pdf, please try again."
-                  : "Ready to chat"}
-          </h1>
-        </div>
+        </>
       )}
     </div>
   );

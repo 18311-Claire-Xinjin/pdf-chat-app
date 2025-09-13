@@ -12,7 +12,15 @@ import { ChatSection } from "./components/app/chat-section";
 import { useAppState } from "./hooks/use-app-state";
 
 function App() {
-  const { sessionId, setSessionId, file, setFile } = useAppState();
+  const {
+    sessionId,
+    setSessionId,
+    status,
+    setFile,
+    setStatus,
+    setMetadata,
+    resetSession,
+  } = useAppState();
 
   useEffect(() => {
     const handleVerifySession = async () => {
@@ -24,10 +32,13 @@ function App() {
       api
         .post("/api/session/verify")
         .then((res) => {
+          setStatus(res.data.session.status);
           setFile(res.data.session.file);
+          setMetadata(res.data.session.metadata);
         })
         .catch((err) => {
           console.error("Error verifying session:", err);
+          resetSession();
         });
     };
 
@@ -36,11 +47,11 @@ function App() {
 
   return (
     <ThemeProvider>
-      <div className="relative mx-auto flex min-h-[100svh] w-full max-w-5xl flex-col px-6 pb-6 md:px-10">
+      <div className="relative mx-auto flex min-h-[100svh] w-full max-w-5xl flex-col px-4 pb-4 md:pb-6 md:px-10">
         <Header />
-        <main className="flex flex-1 flex-col gap-8 pt-16 sm:pt-28">
+        <main className="flex flex-1 flex-col">
           <Hero />
-          {file ? <ChatSection /> : <UploadSection />}
+          {status === "chatting" ? <ChatSection /> : <UploadSection />}
         </main>
       </div>
     </ThemeProvider>

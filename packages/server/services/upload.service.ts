@@ -13,6 +13,55 @@ export const uploadService = {
       fs.mkdirSync(uploadsDir, { recursive: true });
   },
 
+  deleteFiles: (
+    sessionId: string
+  ): Promise<{ success: boolean; message: string }> => {
+    return new Promise((resolve) => {
+      try {
+        if (!fs.existsSync(uploadsDir)) {
+          return resolve({
+            success: true,
+            message: "Uploads directory does not exist",
+          });
+        }
+
+        const files = fs.readdirSync(uploadsDir);
+        const sessionFiles = files.filter((file) =>
+          file.startsWith(`${sessionId}_`)
+        );
+
+        if (sessionFiles.length === 0) {
+          return resolve({
+            success: true,
+            message: "No files found for this session",
+          });
+        }
+
+        let deletedCount = 0;
+        sessionFiles.forEach((file) => {
+          try {
+            const filePath = path.join(uploadsDir, file);
+            fs.unlinkSync(filePath);
+            deletedCount++;
+          } catch (error) {
+            console.error(`Error deleting file ${file}:`, error);
+          }
+        });
+
+        resolve({
+          success: true,
+          message: `Successfully deleted ${deletedCount} file(s)`,
+        });
+      } catch (error) {
+        console.error("Error in deleteFilesBySessionId:", error);
+        resolve({
+          success: false,
+          message: "Failed to delete files",
+        });
+      }
+    });
+  },
+
   middleware: (): express.RequestHandler => {
     const upload = multer({
       storage: multer.diskStorage({
@@ -30,7 +79,7 @@ export const uploadService = {
           file: Express.Multer.File,
           cb: (error: Error | null, filename: string) => void
         ): void => {
-          const sessionId = req.headers["x-session-id"];
+          const sessionId = req.sessionId;
           const timestamp = Date.now();
           const sanitizedName = file.originalname.replace(
             /[^a-zA-Z0-9.-]/g,

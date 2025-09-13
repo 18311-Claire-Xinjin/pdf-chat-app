@@ -4,6 +4,11 @@ export interface ChatMessage {
   id: string;
   role: "user" | "assistant";
   content: string;
+  sources?: {
+    id: number;
+    pageNumber: number;
+    preview: string;
+  }[];
 }
 
 export interface FileData {
@@ -11,7 +16,6 @@ export interface FileData {
   size: number;
   path: string;
   uploadedAt: string;
-  status: "ready" | "processing" | "error";
 }
 
 export interface MetaData {
@@ -19,4 +23,18 @@ export interface MetaData {
   totalPages: number;
 }
 
-export type PdfStatus = "idle" | "uploading" | "processing" | "ready" | "error";
+export type SessionStatus =
+  | "idle"
+  | "uploading"
+  | "uploaded"
+  | "extracting"
+  | "chunking"
+  | "embedding"
+  | "storing"
+  | "complete"
+  | "chatting"
+  | "error";
+
+export type ChatInputData = {
+  prompt: string;
+};

@@ -1,6 +1,8 @@
 import type { NextFunction, Request, Response } from "express";
 
 import { sessionService } from "../services/session.service";
+import { uploadService } from "../services/upload.service";
+import { getPineconeIndex } from "../utils/pinecone";
 
 export const sessionController = {
   middleware(req: Request, res: Response, next: NextFunction) {
@@ -19,15 +21,19 @@ export const sessionController = {
     next();
   },
 
-  verify(req: Request, res: Response) {
+  async verify(req: Request, res: Response) {
     try {
       const sessionId = req.sessionId;
 
-      if (sessionService.checkSession(sessionId) === false) {
+      const isSessionExists = await sessionService.checkSession(sessionId);
+
+      if (!isSessionExists) {
+        await uploadService.deleteFiles(sessionId);
+
         return res.status(404).json({ error: "Session not found" });
       }
 
-      const session = sessionService.getSession(sessionId);
+      const session = await sessionService.getSession(sessionId);
 
       return res.json({ session });
     } catch (error) {
@@ -36,18 +42,41 @@ export const sessionController = {
     }
   },
 
-  delete(req: Request, res: Response) {
+  async status(req: Request, res: Response) {
     try {
       const sessionId = req.sessionId;
 
-      if (sessionService.checkSession(sessionId) === false) {
+      const isSessionExists = await sessionService.checkSession(sessionId);
+
+      if (!isSessionExists) {
         return res.status(404).json({ error: "Session not found" });
       }
 
-      // Todo: Delete uploaded files
-      // Todo: Delete vector embeddings from Pinecone
+      const session = await sessionService.getSession(sessionId);
 
-      sessionService.deleteSession(sessionId);
+      return res.json({ session });
+    } catch (error) {
+      console.error("Error verifying session:", error);
+      return res.status(500).json({ error: "Failed to verify session" });
+    }
+  },
+
+  async delete(req: Request, res: Response) {
+    try {
+      const sessionId = req.sessionId;
+
+      const isSessionExists = await sessionService.checkSession(sessionId);
+
+      if (!isSessionExists) {
+        return res.status(404).json({ error: "Session not found" });
+      }
+
+      await uploadService.deleteFiles(sessionId);
+
+      const pineconeIndex = await getPineconeIndex();
+      await pineconeIndex.deleteNamespace(sessionId);
+
+      await sessionService.deleteSession(sessionId);
 
       return res.json({ message: "Session deleted successfully" });
     } catch (error) {

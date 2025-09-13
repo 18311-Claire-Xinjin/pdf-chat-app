@@ -1,3 +1,4 @@
+import path from "node:path";
 import { PDFLoader } from "@langchain/community/document_loaders/fs/pdf";
 import { RecursiveCharacterTextSplitter } from "langchain/text_splitter";
 import { Document } from "langchain/document";
@@ -10,19 +11,25 @@ import { sessionService } from "./session.service";
 export const pdfProcessorService = {
   async processDocument(sessionId: string, filePath: string): Promise<void> {
     try {
-      console.log(`🔄 Starting PDF processing for session: ${sessionId}`);
-
       // Stage 1: Extract text
-      sessionService.updateSession(sessionId, {
+      await sessionService.updateSession(sessionId, {
         status: "extracting",
       });
 
       const loader = new PDFLoader(filePath);
       const pdfDocs = await loader.load();
-      const text = pdfDocs.map((doc) => doc.pageContent).join("\n");
+
+      // Preserve per-page metadata and include sessionId
+      const docsWithMeta = pdfDocs.map(
+        (d) =>
+          new Document({
+            pageContent: d.pageContent,
+            metadata: { ...(d.metadata ?? {}), sessionId },
+          })
+      );
 
       // Stage 2: Chunk documents
-      sessionService.updateSession(sessionId, {
+      await sessionService.updateSession(sessionId, {
         status: "chunking",
       });
 
@@ -31,12 +38,10 @@ export const pdfProcessorService = {
         chunkOverlap: 200,
       });
 
-      const docs = await splitter.splitDocuments([
-        new Document({ pageContent: text, metadata: { sessionId } }),
-      ]);
+      const docs = await splitter.splitDocuments(docsWithMeta);
 
       // Stage 3: Generate embeddings
-      sessionService.updateSession(sessionId, {
+      await sessionService.updateSession(sessionId, {
         status: "embedding",
         metadata: {
           totalPages: pdfDocs.length,
@@ -44,13 +49,17 @@ export const pdfProcessorService = {
         },
       });
 
+      if (!process.env.GEMINI_API_KEY) {
+        throw new Error("GEMINI_API_KEY is not set");
+      }
+
       const embeddings = new GoogleGenerativeAIEmbeddings({
         apiKey: process.env.GEMINI_API_KEY,
         model: "models/text-embedding-004",
       });
 
       // Stage 4: Store in Pinecone
-      sessionService.updateSession(sessionId, {
+      await sessionService.updateSession(sessionId, {
         status: "storing",
       });
 
@@ -61,7 +70,7 @@ export const pdfProcessorService = {
       });
 
       // Stage 5: Complete
-      sessionService.updateSession(sessionId, {
+      await sessionService.updateSession(sessionId, {
         status: "complete",
       });
 
@@ -69,7 +78,7 @@ export const pdfProcessorService = {
     } catch (error) {
       console.error("❌ PDF processing error:", error);
 
-      sessionService.updateSession(sessionId, {
+      await sessionService.updateSession(sessionId, {
         status: "error",
       });
     }
