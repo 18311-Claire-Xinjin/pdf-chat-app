@@ -13,6 +13,8 @@ import { cn } from "@/lib/utils";
 import { formatFileSize } from "@/lib/format-file-size";
 
 import { useAppState } from "@/hooks/use-app-state";
+import { EXAMPLE_SESSIONS } from "@/lib/example-sessions";
+import { PdfIcon } from "@/svgs";
 
 export function UploadSection() {
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -23,8 +25,15 @@ export function UploadSection() {
   const [openDeleteSessionConfirmation, setOpenDeleteSessionConfirmation] =
     useState(false);
 
-  const { status, setStatus, file, setFile, metadata, setMetadata } =
-    useAppState();
+  const {
+    status,
+    setStatus,
+    file,
+    setFile,
+    metadata,
+    setMetadata,
+    setSessionId,
+  } = useAppState();
   const handleStatusUpdate = () => {
     api
       .get("/api/session/status")
@@ -124,13 +133,28 @@ export function UploadSection() {
       ) : (
         <>
           <PdfDropzone setFile={handleFileSelect} fileInputRef={fileInputRef} />
-          <div className="flex items-center justify-center w-full">
-            <Button
-              variant="ghost"
-              className="italic text-sm text-muted-foreground hover:text-muted-foreground font-normal underline underline-offset-2 cursor-pointer"
-            >
+          <div className="flex items-center justify-center w-full flex-col gap-6">
+            <p className="italic text-sm text-muted-foreground">
               or, give it a try with a sample pdf
-            </Button>
+            </p>
+            <div className="flex items-center flex-col gap-2">
+              {EXAMPLE_SESSIONS.map((session) => (
+                <Button
+                  key={session.sessionId}
+                  variant="outline"
+                  className="cursor-pointer"
+                  onClick={() => {
+                    setSessionId(session.sessionId);
+                    setStatus(session.status);
+                    setFile(session.file);
+                    setMetadata(session.metadata);
+                  }}
+                >
+                  <PdfIcon className="shrink-0 size-5" />
+                  <span>{session.file.name}</span>
+                </Button>
+              ))}
+            </div>
           </div>
         </>
       )}

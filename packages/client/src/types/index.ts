@@ -43,3 +43,10 @@ export type SessionStatus =
 export type ChatInputData = {
   prompt: string;
 };
+
+export type ExampleSession = {
+  sessionId: string;
+  status: SessionStatus;
+  file: FileData;
+  metadata: MetaData;
+};

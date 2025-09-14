@@ -1,12 +1,18 @@
 import api from "@/api";
 
 import { useAppState } from "@/hooks/use-app-state";
+import { EXAMPLE_SESSIONS } from "@/lib/example-sessions";
 
 export const useDeleteSession = () => {
-  const { resetSession, setIsDeletingSession } = useAppState();
+  const { sessionId, resetSession, setIsDeletingSession } = useAppState();
 
   const deleteSession = () => {
     setIsDeletingSession(true);
+
+    if (EXAMPLE_SESSIONS.some((session) => session.sessionId === sessionId)) {
+      resetSession();
+      return;
+    }
 
     api
       .delete("/api/session/delete")

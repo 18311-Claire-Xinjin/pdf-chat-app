@@ -23,7 +23,11 @@ export const chatService = {
     });
 
     // query the vector DB
-    const topK = query.toLowerCase().includes("summarize") ? 20 : 6;
+    const topK =
+      query.toLowerCase().includes("summarize") ||
+      query.toLowerCase().includes("summary")
+        ? 20
+        : 6;
     const results = await store.similaritySearch(query, topK);
 
     return results;

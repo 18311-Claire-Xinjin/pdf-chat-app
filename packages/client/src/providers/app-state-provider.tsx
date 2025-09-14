@@ -38,11 +38,14 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
       setSessionIdInLS(id ?? "");
     },
     resetSession: () => {
-      setSessionId(crypto.randomUUID());
+      const id = crypto.randomUUID();
+      setSessionId(id);
+      setSessionIdInLS(id);
       setStatus("idle");
       setFile(null);
       setMetadata(null);
       setChatMessages([]);
+      setChatMessagesInLS([]);
       setIsBotTyping(false);
       setError("");
       setIsDeletingSession(false);
