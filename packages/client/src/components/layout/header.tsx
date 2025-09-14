@@ -4,7 +4,7 @@ import { Moon, Sun } from "lucide-react";
 
 import { Button } from "../ui/button";
 import { Logo } from "./logo";
-import { GitHubIcon } from "@/svgs/github-icon";
+import { GitHubIcon } from "@/svgs";
 
 import { useTheme } from "@/hooks/use-theme";
 

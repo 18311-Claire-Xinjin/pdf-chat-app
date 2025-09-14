@@ -7,8 +7,13 @@ export interface ChatMessage {
   sources?: {
     id: number;
     pageNumber: number;
-    preview: string;
   }[];
+  usage_metadata?: {
+    input_tokens: number;
+    output_tokens: number;
+    total_tokens: number;
+  };
+  generationTime?: string;
 }
 
 export interface FileData {

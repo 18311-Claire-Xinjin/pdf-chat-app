@@ -143,4 +143,8 @@
   textarea::-webkit-scrollbar-thumb:hover {
     @apply bg-neutral-700 rounded-[3px];
   }
+
+  .react-pdf__Page {
+    @apply !bg-background !text-foreground;
+  }
 }

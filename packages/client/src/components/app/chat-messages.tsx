@@ -4,6 +4,8 @@ import ReactMarkdown from "react-markdown";
 import { useAppState } from "@/hooks/use-app-state";
 import { cn } from "@/lib/utils";
 import { UserIcon } from "@/svgs";
+import { ChatMessageStat } from "./chat-message-stat";
+import { ChatMessageSource } from "./chat-message-source";
 
 export function ChatMessages() {
   const { chatMessages } = useAppState();
@@ -47,14 +49,21 @@ export function ChatMessages() {
               <UserIcon />
             </div>
           )}
-          <div
-            className={cn("max-w-2xl prose", {
-              "rounded-lg bg-muted/30 border border-muted/50 px-3 py-2":
-                message.role === "user",
-              "leading-7": message.role === "assistant",
-            })}
-          >
-            <ReactMarkdown>{message.content}</ReactMarkdown>
+          <div className="flex flex-col gap-2 w-full">
+            <div
+              className={cn("max-w-2xl prose", {
+                "rounded-lg bg-muted/30 border border-muted/50 px-3 py-2":
+                  message.role === "user",
+                "leading-7": message.role === "assistant",
+              })}
+            >
+              <ReactMarkdown>{message.content}</ReactMarkdown>
+            </div>
+
+            <div className="flex items-center gap-2 flex-wrap">
+              <ChatMessageSource message={message} />
+              <ChatMessageStat message={message} />
+            </div>
           </div>
         </div>
       ))}

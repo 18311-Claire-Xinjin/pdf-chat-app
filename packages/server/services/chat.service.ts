@@ -3,6 +3,7 @@ import {
   GoogleGenerativeAIEmbeddings,
   ChatGoogleGenerativeAI,
 } from "@langchain/google-genai";
+import { performance } from "node:perf_hooks";
 
 import { getPineconeIndex } from "../utils/pinecone.js";
 
@@ -21,8 +22,9 @@ export const chatService = {
       namespace: sessionId, // scoped to this user's session
     });
 
-    // query the vector DB, topK = 3
-    const results = await store.similaritySearch(query, 2);
+    // query the vector DB
+    const topK = query.toLowerCase().includes("summarize") ? 20 : 6;
+    const results = await store.similaritySearch(query, topK);
 
     return results;
   },
@@ -32,7 +34,6 @@ export const chatService = {
     const relevantDocs = await this.searchRelevantDocuments(sessionId, query);
 
     // Stage 2: Prepare context
-
     const context = relevantDocs
       .map((doc, i) => `Source ${i + 1}:\n${doc.pageContent}`)
       .join("\n\n");
@@ -60,18 +61,30 @@ Answer (max 200 tokens):
       maxOutputTokens: 200,
     });
 
+    const start = performance.now();
+
     const response = await model.invoke(prompt);
 
+    const end = performance.now();
+    const generationTime = ((end - start) / 1000).toFixed(2); // seconds
+
     return {
-      id: response?.id,
+      id: crypto.randomUUID(),
       content: response.content,
-      sources: relevantDocs.map((doc, i) => {
+      sources: Array.from(
+        new Set(relevantDocs.map((doc) => doc.metadata?.["loc.pageNumber"]))
+      ).map((pageNumber, i) => {
         return {
           id: i + 1,
-          pageNumber: doc.metadata?.["loc.pageNumber"],
-          preview: doc.pageContent.slice(0, 200) + "...",
+          pageNumber,
         };
       }),
+      generationTime: `${generationTime}s`,
+      usage_metadata: {
+        input_tokens: response?.usage_metadata?.input_tokens,
+        output_tokens: response?.usage_metadata?.output_tokens,
+        total_tokens: response?.usage_metadata?.total_tokens,
+      },
     };
   },
 };

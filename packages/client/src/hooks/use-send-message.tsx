@@ -33,6 +33,8 @@ export const useSendMessage = () => {
         id: data?.id,
         content: data?.content,
         sources: data?.sources,
+        usage_metadata: data?.usage_metadata,
+        generationTime: data?.generationTime,
         role: "assistant",
       });
       notificationAudio.play();
