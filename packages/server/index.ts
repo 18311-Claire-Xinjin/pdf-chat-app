@@ -11,7 +11,13 @@ dotenv.config();
 
 const app = express();
 
-app.use(cors());
+const corsOptions = {
+  origin:
+    process.env.NODE_ENV === "production" && process.env.CORS_ORIGIN
+      ? process.env.CORS_ORIGIN
+      : "*",
+};
+app.use(cors(corsOptions));
 app.use(express.json());
 
 // Serve static files from uploads directory
