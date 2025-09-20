@@ -27,6 +27,12 @@ export function DeleteSessionConfirmation({
   const { isDeletingSession } = useAppState();
   const { deleteSession } = useDeleteSession();
 
+  const handleDeleteSession = async (e: React.MouseEvent) => {
+    e.preventDefault();
+    await deleteSession();
+    onOpenChange(false);
+  };
+
   return (
     <AlertDialog open={open} onOpenChange={onOpenChange}>
       <AlertDialogTrigger asChild>{children}</AlertDialogTrigger>
@@ -46,7 +52,7 @@ export function DeleteSessionConfirmation({
           </AlertDialogCancel>
           <AlertDialogAction
             disabled={isDeletingSession}
-            onClick={deleteSession}
+            onClick={handleDeleteSession}
             className="cursor-pointer"
           >
             {isDeletingSession && <Loader className="h-4 w-4 animate-spin" />}
