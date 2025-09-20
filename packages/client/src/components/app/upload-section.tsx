@@ -21,6 +21,8 @@ export function UploadSection() {
   const pollingRef = useRef<NodeJS.Timeout>(null);
 
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [isStatusRequestInProgress, setIsStatusRequestInProgress] =
+    useState(false);
 
   const [openDeleteSessionConfirmation, setOpenDeleteSessionConfirmation] =
     useState(false);
@@ -34,7 +36,14 @@ export function UploadSection() {
     setMetadata,
     setSessionId,
   } = useAppState();
+
   const handleStatusUpdate = () => {
+    if (isStatusRequestInProgress) {
+      return;
+    }
+
+    setIsStatusRequestInProgress(true);
+
     api
       .get("/api/session/status")
       .then((res) => {
@@ -48,6 +57,9 @@ export function UploadSection() {
       })
       .catch((err) => {
         console.error("Error updating status:", err);
+      })
+      .finally(() => {
+        setIsStatusRequestInProgress(false);
       });
   };
 
