@@ -1,5 +1,3 @@
-import Redis from "ioredis";
-
 type SessionStatus =
   | "idle"
   | "uploading"
@@ -27,43 +25,41 @@ export interface Session {
   };
 }
 
-const redis = new Redis(process.env.REDIS_URL!);
+// In-memory session storage
+const sessionStore = new Map<string, string>();
 
 const createSessionKey = (id: string) => `session:${id}`;
 
 export const sessionService = {
-  async createSession(session: Session): Promise<void> {
-    await redis.set(
+  createSession(session: Session): void {
+    sessionStore.set(
       createSessionKey(session.sessionId),
       JSON.stringify(session)
     );
   },
 
-  async getSession(sessionId: string): Promise<Session | null> {
-    const session = await redis.get(createSessionKey(sessionId));
+  getSession(sessionId: string): Session | null {
+    const session = sessionStore.get(createSessionKey(sessionId));
     return session ? (JSON.parse(session) as Session) : null;
   },
 
-  async getSessionStatus(sessionId: string): Promise<SessionStatus | null> {
-    const session = await this.getSession(sessionId);
+  getSessionStatus(sessionId: string): SessionStatus | null {
+    const session = this.getSession(sessionId);
     return session?.status ?? null;
   },
 
-  async checkSession(sessionId: string): Promise<boolean> {
-    return (await redis.exists(createSessionKey(sessionId))) === 1;
+  checkSession(sessionId: string): boolean {
+    return sessionStore.has(createSessionKey(sessionId));
   },
 
-  async updateSession(
-    sessionId: string,
-    updates: Partial<Session>
-  ): Promise<void> {
-    const session = await this.getSession(sessionId);
+  updateSession(sessionId: string, updates: Partial<Session>): void {
+    const session = this.getSession(sessionId);
     if (!session) return;
     const updated = { ...session, ...updates };
-    await redis.set(createSessionKey(sessionId), JSON.stringify(updated));
+    sessionStore.set(createSessionKey(sessionId), JSON.stringify(updated));
   },
 
-  async deleteSession(sessionId: string): Promise<void> {
-    await redis.del(createSessionKey(sessionId));
+  deleteSession(sessionId: string): void {
+    sessionStore.delete(createSessionKey(sessionId));
   },
 };

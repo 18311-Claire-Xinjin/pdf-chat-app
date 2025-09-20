@@ -74,7 +74,7 @@ export function UploadSection() {
       .then((res) => {
         setStatus(res.data.session.status);
         setFile(res.data.session.file);
-        pollingRef.current = setInterval(handleStatusUpdate, 2000);
+        pollingRef.current = setInterval(handleStatusUpdate, 3000);
       })
       .catch((err) => {
         console.error("Error uploading pdf:", err);

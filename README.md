@@ -25,7 +25,6 @@ A full-stack AI-powered application that lets users upload and chat with their P
 
 - Node.js + Express
 - Multer (file uploads)
-- Redis (session persistence / caching)
 - Pinecone (vector database for document embeddings)
 
 **AI Tools**
