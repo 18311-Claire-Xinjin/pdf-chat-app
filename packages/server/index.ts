@@ -1,4 +1,8 @@
-import express from "express";
+import express, {
+  type Request,
+  type Response,
+  type NextFunction,
+} from "express";
 import cors from "cors";
 import dotenv from "dotenv";
 import path from "node:path";
@@ -20,12 +24,25 @@ const corsOptions = {
 app.use(cors(corsOptions));
 app.use(express.json());
 
-// Serve static files from uploads directory
+// Public routes (no session required)
+app.get("/", (req: Request, res: Response) => {
+  res.json({ message: "Hello World!" });
+});
+
+// Serve static files from uploads directory (no session required)
 const uploadsDir = path.join(process.cwd(), "uploads");
 app.use("/view", express.static(uploadsDir));
 
-app.use(sessionController.middleware);
+// Apply session middleware only to API routes
+app.use((req: Request, res: Response, next: NextFunction) => {
+  // Skip session check for non-API routes
+  if (!req.path.startsWith("/api/")) {
+    return next();
+  }
+  sessionController.middleware(req, res, next);
+});
 
+// API routes (protected by session middleware)
 app.use("/api", router);
 
 const port = process.env.PORT || 3000;
