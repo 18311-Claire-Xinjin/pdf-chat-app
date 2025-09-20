@@ -80,12 +80,11 @@ export const uploadService = {
           cb: (error: Error | null, filename: string) => void
         ): void => {
           const sessionId = req.sessionId;
-          const timestamp = Date.now();
           const sanitizedName = file.originalname.replace(
             /[^a-zA-Z0-9.-]/g,
             "_"
           );
-          const fileName = `${sessionId}_${timestamp}_${sanitizedName}`;
+          const fileName = `${sessionId}_${sanitizedName}`;
 
           cb(null, fileName);
         },
